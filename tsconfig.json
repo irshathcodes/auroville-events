@@ -1,0 +1,3 @@
+{
+  "extends": "@auroville-events/config/tsconfig.base.json"
+}
