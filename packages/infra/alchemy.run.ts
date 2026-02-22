@@ -4,9 +4,24 @@ import { Worker } from "alchemy/cloudflare";
 import { D1Database } from "alchemy/cloudflare";
 import { config } from "dotenv";
 
-config({ path: "./.env" });
-config({ path: "../../apps/web/.env" });
+// Determine environment: "production" or "development"
+const env = process.env.NODE_ENV || "development";
+const isProd = env === "production";
+
+// Load env files in order (later files override earlier ones)
+// 1. Base .env files (defaults)
 config({ path: "../../apps/server/.env" });
+config({ path: "../../apps/web/.env" });
+config({ path: "./.env" });
+
+// 2. Environment-specific files (override defaults)
+if (isProd) {
+  config({ path: "../../apps/server/.env.production", override: true });
+  config({ path: "../../apps/web/.env.production", override: true });
+  config({ path: "./.env.production", override: true });
+}
+
+console.log(`Environment: ${env}`);
 
 const app = await alchemy("auroville-events");
 
