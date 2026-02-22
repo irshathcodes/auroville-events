@@ -81,6 +81,9 @@ importers:
       dotenv:
         specifier: 'catalog:'
         version: 17.3.1
+      drizzle-orm:
+        specifier: ^0.45.1
+        version: 0.45.1(@cloudflare/workers-types@4.20260228.0)(@libsql/client@0.15.15)(kysely@0.28.11)
       hono:
         specifier: ^4.8.2
         version: 4.12.1

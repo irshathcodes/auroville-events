@@ -8,6 +8,13 @@
       "when": 1771737868996,
       "tag": "0000_daily_shiver_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1771742887471,
+      "tag": "0001_regular_carmella_unuscione",
+      "breakpoints": true
     }
   ]
 }
