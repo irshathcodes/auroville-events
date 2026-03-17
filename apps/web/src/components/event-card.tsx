@@ -3,7 +3,6 @@ import { format, parse } from "date-fns";
 import { Calendar, MapPin, Clock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getEventSlug } from "@/lib/api";
 import type { Event } from "@/lib/types";
 
@@ -12,9 +11,9 @@ interface EventCardProps {
 }
 
 const categoryColors = {
-  workshop: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  event: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  class: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  workshop: "bg-purple-500/80 text-white",
+  event: "bg-blue-500/80 text-white",
+  class: "bg-green-500/80 text-white",
 } as const;
 
 function formatTime(time: string | null): string | null {
@@ -35,74 +34,85 @@ export function EventCard({ event }: EventCardProps) {
   const startFormatted = formatTime(event.startTime);
   const endFormatted = formatTime(event.endTime);
 
+  const mediaSrc = event.imageUrl || event.videoUrl;
+
   return (
     <Link
       to="/events/$slug"
       params={{ slug }}
       search={{ date: event.date || undefined }}
     >
-      <Card className="h-full transition-shadow hover:shadow-lg cursor-pointer">
-        {event.imageUrl && (
+      <div className="group relative h-[28rem] overflow-hidden rounded-xl cursor-pointer transition-transform hover:scale-[1.02]">
+        {/* Media */}
+        {event.imageUrl ? (
           <img
             src={event.imageUrl}
             alt={event.title || "Event"}
-            className="w-full h-48 object-cover"
+            className="absolute inset-0 w-full h-full object-cover object-top"
           />
-        )}
-        {!event.imageUrl && event.videoUrl && (
+        ) : event.videoUrl ? (
           <video
             src={event.videoUrl}
-            className="w-full h-48 object-cover"
+            className="absolute inset-0 w-full h-full object-cover object-top"
             muted
             playsInline
           />
+        ) : (
+          <div className="absolute inset-0 bg-muted" />
         )}
-        <CardHeader className="pb-2">
-          <div className="flex items-start justify-between gap-2">
-            <CardTitle className="line-clamp-2">{event.title || "Untitled Event"}</CardTitle>
-            {event.category && (
-              <Badge
-                className={categoryColors[event.category]}
-                variant="secondary"
-              >
-                {event.category}
-              </Badge>
+
+        {/* Category badge - top right */}
+        {event.category && (
+          <Badge
+            className={`absolute top-3 right-3 ${categoryColors[event.category]} backdrop-blur-sm border-0`}
+          >
+            {event.category}
+          </Badge>
+        )}
+
+        {/* Glassmorphic overlay */}
+        <div className="absolute inset-x-0 bottom-0 bg-black/40 backdrop-blur-md p-4 space-y-1.5">
+          <h3 className="font-semibold text-white text-lg line-clamp-2 leading-tight">
+            {event.title || "Untitled Event"}
+          </h3>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/80">
+            {eventDate && (
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                {format(eventDate, "MMM d")}
+              </span>
+            )}
+            {startFormatted && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                {startFormatted}
+                {endFormatted && ` - ${endFormatted}`}
+              </span>
+            )}
+            {event.placeName && (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" />
+                <span className="line-clamp-1">{event.placeName}</span>
+              </span>
             )}
           </div>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          {eventDate && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>{format(eventDate, "EEE, MMM d, yyyy")}</span>
+
+          {event.paymentType && (
+            <div>
+              {event.paymentType === "free" ? (
+                <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-green-500/80 text-white">
+                  Free
+                </span>
+              ) : (
+                <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-white/20 text-white">
+                  {event.paymentAmount || (event.paymentType === "paid" ? "Paid" : "Contribution")}
+                </span>
+              )}
             </div>
           )}
-          {startFormatted && (
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span>{startFormatted}</span>
-              {endFormatted && <span>- {endFormatted}</span>}
-            </div>
-          )}
-          {event.placeName && (
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              <span className="line-clamp-1">{event.placeName}</span>
-            </div>
-          )}
-          <div className="pt-2">
-            {event.paymentType === "free" ? (
-              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                Free
-              </Badge>
-            ) : event.paymentType === "paid" || event.paymentType === "contribution" ? (
-              <Badge variant="secondary">
-                {event.paymentAmount || (event.paymentType === "paid" ? "Paid" : "Contribution")}
-              </Badge>
-            ) : null}
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </Link>
   );
 }

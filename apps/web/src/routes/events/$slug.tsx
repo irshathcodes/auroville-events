@@ -87,7 +87,7 @@ function EventDetailPage() {
         <img
           src={event.imageUrl}
           alt={event.title || "Event"}
-          className="w-full h-64 md:h-96 object-cover rounded-xl mb-6"
+          className="w-80 h-fit object-contain rounded-xl mb-6 mx-auto"
         />
       )}
 
