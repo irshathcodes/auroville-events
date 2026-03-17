@@ -15,7 +15,7 @@
     "dev:server": "pnpm --filter server dev",
     "db:push": "pnpm --filter @auroville-events/db db:push",
     "db:generate": "pnpm --filter @auroville-events/db db:generate",
-    "deploy": "pnpm --filter @auroville-events/infra deploy",
+    "deploy:prod": "NODE_ENV=production pnpm --filter @auroville-events/infra run deploy",
     "destroy": "pnpm --filter @auroville-events/infra destroy"
   },
   "dependencies": {
