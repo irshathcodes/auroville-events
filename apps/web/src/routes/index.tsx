@@ -78,16 +78,16 @@ function HomePage() {
     icon: React.ReactNode;
     search: SearchParams;
   }[] = [
-    { key: "today", label: "Today", icon: <Sun className="h-4 w-4" />, search: {} },
-    { key: "tomorrow", label: "Tomorrow", icon: <Sunrise className="h-4 w-4" />, search: { tab: "tomorrow" } },
-    { key: "week", label: "Week", icon: <CalendarDays className="h-4 w-4" />, search: { tab: "week" } },
-  ];
+      { key: "today", label: "Today", icon: <Sun className="h-4 w-4" />, search: {} },
+      { key: "tomorrow", label: "Tomorrow", icon: <Sunrise className="h-4 w-4" />, search: { tab: "tomorrow" } },
+      { key: "week", label: "Week", icon: <CalendarDays className="h-4 w-4" />, search: { tab: "week" } },
+    ];
 
   return (
     <main className="container mx-auto px-4 pt-6 pb-28">
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold mb-1">Auroville Events</h1>
-        <p className="text-muted-foreground text-sm hidden sm:block">
+        <p className="text-muted-foreground text-sm sm:block">
           Discover workshops, events, and classes happening in Auroville
         </p>
       </div>
@@ -124,6 +124,11 @@ function HomePage() {
                 <span className={activeTab === key ? "" : "hidden sm:inline"}>
                   {label}
                 </span>
+                {activeTab === key && events.length > 0 && (
+                  <span className="min-w-5 h-5 flex items-center justify-center rounded-full bg-primary-foreground/20 text-xs tabular-nums">
+                    {events.length}
+                  </span>
+                )}
               </Tabs.Tab>
             ))}
 
@@ -141,6 +146,11 @@ function HomePage() {
                 <span className={activeTab === "custom" ? "whitespace-nowrap" : "hidden sm:inline"}>
                   {customLabel}
                 </span>
+                {activeTab === "custom" && events.length > 0 && (
+                  <span className="min-w-5 h-5 flex items-center justify-center rounded-full bg-primary-foreground/20 text-xs tabular-nums">
+                    {events.length}
+                  </span>
+                )}
               </PopoverTrigger>
               <PopoverContent side="top" sideOffset={12} className="w-auto p-0">
                 <Calendar
