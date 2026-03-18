@@ -1,8 +1,8 @@
 import { Tabs } from "@base-ui/react/tabs";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { format, addDays, parse } from "date-fns";
-import { CalendarIcon, Sun, Sunrise, CalendarDays } from "lucide-react";
+import { CalendarIcon, Sun, Sunrise, CalendarDays, Search, X } from "lucide-react";
 
 import { EventCard } from "@/components/event-card";
 import { Calendar } from "@/components/ui/calendar";
@@ -14,6 +14,7 @@ import {
 import { fetchEventsByDate } from "@/lib/api";
 import type { Event } from "@/lib/types";
 import { formatDateParam } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type DateTab = "today" | "tomorrow" | "week" | "custom";
 
@@ -59,11 +60,28 @@ export const Route = createFileRoute("/")({
 const tabClass =
   "relative z-10 flex cursor-pointer items-center gap-1.5 rounded-full border-0 bg-transparent px-5 py-3 md:px-4 md:py-2 text-sm font-medium text-muted-foreground outline-hidden transition-colors select-none hover:text-foreground data-[active]:text-primary-foreground no-underline";
 
+function searchEvents(events: Event[], query: string): Event[] {
+  const q = query.toLowerCase().trim();
+  if (!q) return events;
+  return events.filter((event) =>
+    [event.title, event.description, event.placeName, event.location, event.category]
+      .some((field) => field?.toLowerCase().includes(q))
+  );
+}
+
 function HomePage() {
   const { events, tab: activeTab } = Route.useLoaderData();
   const { date: customDate } = Route.useSearch();
   const navigate = useNavigate({ from: "/" });
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const filteredEvents = useMemo(
+    () => searchEvents(events, searchQuery),
+    [events, searchQuery],
+  );
 
   const selectedDate =
     activeTab === "custom" && customDate
@@ -86,21 +104,65 @@ function HomePage() {
   return (
     <main className="container mx-auto px-4 pt-6 pb-28">
       <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold mb-1">Auroville Events</h1>
-        <p className="text-muted-foreground text-sm sm:block">
-          Discover workshops, events, and classes happening in Auroville
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          {searchOpen ? (
+            <div className="flex flex-1 items-center gap-2 rounded-full border border-border bg-background px-4 py-2 shadow-sm">
+              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search events..."
+                autoFocus
+                className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+              />
+              <button
+                onClick={() => {
+                  setSearchOpen(false);
+                  setSearchQuery("");
+                }}
+                className="shrink-0 rounded-full p-1 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold mb-1">Auroville Events</h1>
+                <p className="text-muted-foreground text-sm sm:block">
+                  Discover workshops, events, and classes happening in Auroville
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  setSearchOpen(true);
+                  requestAnimationFrame(() => searchInputRef.current?.focus());
+                }}
+                className="shrink-0 rounded-full p-2.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors self-start size-10!"
+                aria-label="Search events"
+                variant='outline'
+                size='icon-lg'
+              >
+                <Search className="size-5" />
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
-      {events.length === 0 && (
+      {filteredEvents.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No events found</p>
+          <p className="text-muted-foreground">
+            {searchQuery ? "No events matching your search" : "No events found"}
+          </p>
         </div>
       )}
 
-      {events.length > 0 && (
+      {filteredEvents.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event: Event) => (
+          {filteredEvents.map((event: Event) => (
             <EventCard key={`${event.date}-${event.title}`} event={event} />
           ))}
         </div>
@@ -124,7 +186,7 @@ function HomePage() {
                 <span className={activeTab === key ? "" : "hidden sm:inline"}>
                   {label}
                 </span>
-                {activeTab === key && events.length > 0 && (
+                {activeTab === key && filteredEvents.length > 0 && (
                   <span className="min-w-5 h-5 flex items-center justify-center rounded-full bg-primary-foreground/20 text-xs tabular-nums">
                     {events.length}
                   </span>
@@ -148,7 +210,7 @@ function HomePage() {
                 </span>
                 {activeTab === "custom" && events.length > 0 && (
                   <span className="min-w-5 h-5 flex items-center justify-center rounded-full bg-primary-foreground/20 text-xs tabular-nums">
-                    {events.length}
+                    {filteredEvents.length}
                   </span>
                 )}
               </PopoverTrigger>
