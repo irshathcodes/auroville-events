@@ -9,10 +9,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { GeneratedPattern } from "@/components/generated-pattern";
 import { fetchEventsByDate, findEventBySlug } from "@/lib/api";
 import { formatDateParam } from "@/lib/utils";
 
@@ -33,19 +30,18 @@ export const Route = createFileRoute("/$slug")({
     return { event };
   },
   errorComponent: () => (
-    <main className="container mx-auto px-4 py-8 max-w-4xl">
-      <Link to="/">
-        <Button variant="ghost" size="sm" className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Events
-        </Button>
+    <main className="min-h-screen flex flex-col items-center justify-center px-4">
+      <h1 className="text-2xl font-bold mb-2">Event Not Found</h1>
+      <p className="text-gray-500 mb-6">
+        The event you're looking for doesn't exist or has been removed.
+      </p>
+      <Link
+        to="/"
+        className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Events
       </Link>
-      <div className="text-center py-12">
-        <h1 className="text-2xl font-bold mb-2">Event Not Found</h1>
-        <p className="text-muted-foreground">
-          The event you're looking for doesn't exist or has been removed.
-        </p>
-      </div>
     </main>
   ),
   component: EventDetailPage,
@@ -70,135 +66,141 @@ function EventDetailPage() {
   const endFormatted = formatTime(event.endTime);
 
   return (
-    <main className="container mx-auto px-4 py-8 max-w-4xl">
-      <Link to="/">
-        <Button variant="ghost" size="sm" className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Events
-        </Button>
+    <main className="min-h-screen pb-12">
+      {/* Floating back button */}
+      <Link
+        to="/"
+        className="fixed top-4 left-4 z-50 flex items-center justify-center size-11 rounded-full bg-white/70 backdrop-blur-lg border border-gray-200/50 shadow-lg hover:bg-white/90 transition-colors"
+        aria-label="Back to events"
+      >
+        <ArrowLeft className="h-5 w-5 text-gray-800" />
       </Link>
 
-      {event.imageUrl && (
-        <img
-          src={event.imageUrl}
-          alt={event.title || "Event"}
-          className="w-80 h-fit object-contain rounded-xl mb-6 mx-auto"
-        />
+      {/* Hero media */}
+      {event.imageUrl ? (
+        <div className="bg-gray-100 px-4 pt-16 pb-8 flex justify-center">
+          <img
+            src={event.imageUrl}
+            alt={event.title || "Event"}
+            className="w-full max-w-md rounded-xl shadow-md"
+          />
+        </div>
+      ) : event.videoUrl ? (
+        <div className="relative w-full h-72 md:h-[28rem]">
+          <video
+            src={event.videoUrl}
+            controls
+            className="absolute inset-0 w-full h-full object-cover object-top"
+          />
+        </div>
+      ) : (
+        <div className="relative w-full h-48 md:h-64">
+          <GeneratedPattern seed={event.title || "event"} className="absolute inset-0" />
+        </div>
       )}
 
-      {!event.imageUrl && event.videoUrl && (
-        <video
-          src={event.videoUrl}
-          controls
-          className="w-full h-64 md:h-96 object-cover rounded-xl mb-6"
-        />
-      )}
-
-      <div className="mb-4">
-        <h1 className="text-3xl font-bold">{event.title || "Untitled Event"}</h1>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {(eventDate || startFormatted) && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Date & Time
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {eventDate && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>{format(eventDate, "EEEE, MMMM d, yyyy")}</span>
-                </div>
-              )}
-              {startFormatted && (
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>
-                    {startFormatted}
-                    {endFormatted && ` - ${endFormatted}`}
+      {/* Content */}
+      <div className="max-w-2xl mx-auto px-4 -mt-6 relative z-10">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 md:p-8">
+          {/* Title + payment badge */}
+          <div className="mb-5">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+              {event.title || "Untitled Event"}
+            </h1>
+            {event.paymentType && (
+              <div className="mt-2">
+                {event.paymentType === "free" ? (
+                  <span className="inline-block text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">
+                    Free Entry
                   </span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {(event.placeName || event.location) && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Location
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {event.placeName && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span>{event.placeName}</span>
-                </div>
-              )}
-              {event.location && (
-                <p className="text-sm text-muted-foreground">{event.location}</p>
-              )}
-              {event.locationLink && (
-                <a
-                  href={event.locationLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                >
-                  View on Map
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Entry
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {event.paymentType === "free" ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-              >
-                Free Entry
-              </Badge>
-            ) : event.paymentType === "paid" || event.paymentType === "contribution" ? (
-              <p className="text-sm">{event.paymentAmount || (event.paymentType === "paid" ? "Paid" : "Contribution")}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground">Not specified</p>
+                ) : (
+                  <span className="inline-block text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
+                    {event.paymentAmount || (event.paymentType === "paid" ? "Paid" : "Contribution")}
+                  </span>
+                )}
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* Details list */}
+          <div className="space-y-4 mb-6">
+            {eventDate && (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center size-9 rounded-full bg-gray-100">
+                  <Calendar className="h-4 w-4 text-gray-600" />
+                </div>
+                <span className="text-gray-800">{format(eventDate, "EEEE, MMMM d, yyyy")}</span>
+              </div>
+            )}
+
+            {startFormatted && (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center size-9 rounded-full bg-gray-100">
+                  <Clock className="h-4 w-4 text-gray-600" />
+                </div>
+                <span className="text-gray-800">
+                  {startFormatted}
+                  {endFormatted && ` – ${endFormatted}`}
+                </span>
+              </div>
+            )}
+
+            {(event.placeName || event.location) && (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center size-9 rounded-full bg-gray-100 shrink-0">
+                  <MapPin className="h-4 w-4 text-gray-600" />
+                </div>
+                <div>
+                  {event.placeName && (
+                    <span className="text-gray-800">{event.placeName}</span>
+                  )}
+                  {event.location && (
+                    <p className="text-sm text-gray-500">{event.location}</p>
+                  )}
+                  {event.locationLink && (
+                    <a
+                      href={event.locationLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline ml-2"
+                    >
+                      View on Map
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {event.contactNo && (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center size-9 rounded-full bg-gray-100">
+                  <Phone className="h-4 w-4 text-gray-600" />
+                </div>
+                <a
+                  href={`tel:${event.contactNo}`}
+                  className="text-primary hover:underline"
+                >
+                  {event.contactNo}
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          {event.description && (
+            <>
+              <hr className="border-gray-100 mb-5" />
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-3">About this Event</h2>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-wrap text-base">
+                  {event.description}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
       </div>
-
-      {event.contactNo && (
-        <div className="mb-6">
-          <a
-            href={`tel:${event.contactNo}`}
-            className="inline-flex items-center gap-2 text-primary hover:underline"
-          >
-            <Phone className="h-4 w-4" />
-            {event.contactNo}
-          </a>
-        </div>
-      )}
-
-      {event.description && (
-        <div className="prose dark:prose-invert max-w-none">
-          <h2 className="text-xl font-semibold mb-4">About this Event</h2>
-          <p className="whitespace-pre-wrap">{event.description}</p>
-        </div>
-      )}
     </main>
   );
 }

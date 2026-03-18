@@ -49,7 +49,6 @@ function RootDocument() {
             <Outlet />
           </div>
           <Toaster richColors />
-          <TanStackRouterDevtools position="top-left" />
           <Scripts />
         </TooltipProvider>
       </body>
