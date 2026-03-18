@@ -22,6 +22,7 @@ console.log(`Environment: ${env}`);
 const app = await alchemy("auroville-events");
 
 export const web = await TanStackStart("web", {
+  name: "auroville-events",
   cwd: "../../apps/web",
   bindings: {
     VITE_SERVER_URL: alchemy.env.VITE_SERVER_URL!,

@@ -2,19 +2,12 @@ import { Link } from "@tanstack/react-router";
 import { format, parse } from "date-fns";
 import { Calendar, MapPin, Clock } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { getEventSlug } from "@/lib/api";
 import type { Event } from "@/lib/types";
 
 interface EventCardProps {
   event: Event;
 }
-
-const categoryColors = {
-  workshop: "bg-purple-500/80 text-white",
-  event: "bg-blue-500/80 text-white",
-  class: "bg-green-500/80 text-white",
-} as const;
 
 function formatTime(time: string | null): string | null {
   if (!time) return null;
@@ -34,7 +27,6 @@ export function EventCard({ event }: EventCardProps) {
   const startFormatted = formatTime(event.startTime);
   const endFormatted = formatTime(event.endTime);
 
-  const mediaSrc = event.imageUrl || event.videoUrl;
 
   return (
     <Link
@@ -42,7 +34,7 @@ export function EventCard({ event }: EventCardProps) {
       params={{ slug }}
       search={{ date: event.date || undefined }}
     >
-      <div className="group relative h-[28rem] overflow-hidden rounded-xl cursor-pointer transition-transform hover:scale-[1.02]">
+      <div className="group relative h-[28rem] overflow-hidden rounded-xl cursor-pointer">
         {/* Media */}
         {event.imageUrl ? (
           <img
@@ -59,15 +51,6 @@ export function EventCard({ event }: EventCardProps) {
           />
         ) : (
           <div className="absolute inset-0 bg-muted" />
-        )}
-
-        {/* Category badge - top right */}
-        {event.category && (
-          <Badge
-            className={`absolute top-3 right-3 ${categoryColors[event.category]} backdrop-blur-sm border-0`}
-          >
-            {event.category}
-          </Badge>
         )}
 
         {/* Glassmorphic overlay */}

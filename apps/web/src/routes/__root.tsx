@@ -49,7 +49,7 @@ function RootDocument() {
             <Outlet />
           </div>
           <Toaster richColors />
-          <TanStackRouterDevtools position="bottom-left" />
+          <TanStackRouterDevtools position="top-left" />
           <Scripts />
         </TooltipProvider>
       </body>

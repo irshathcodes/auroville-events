@@ -1,10 +1,16 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Tabs } from "@base-ui/react/tabs";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { format, addDays, parse } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Sun, Sunrise, CalendarDays } from "lucide-react";
 
 import { EventCard } from "@/components/event-card";
-import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { fetchEventsByDate } from "@/lib/api";
 import type { Event } from "@/lib/types";
 import { formatDateParam } from "@/lib/utils";
@@ -50,109 +56,114 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const categories = ["all", "workshop", "event", "class"] as const;
+const tabClass =
+  "relative z-10 flex cursor-pointer items-center gap-1.5 rounded-full border-0 bg-transparent px-5 py-3 md:px-4 md:py-2 text-sm font-medium text-muted-foreground outline-hidden transition-colors select-none hover:text-foreground data-[active]:text-primary-foreground no-underline";
 
 function HomePage() {
   const { events, tab: activeTab } = Route.useLoaderData();
-  const navigate = useNavigate({ from: "/" });
   const { date: customDate } = Route.useSearch();
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const navigate = useNavigate({ from: "/" });
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
-  const filteredEvents = events.filter((event: Event) =>
-    selectedCategory === "all" ? true : event.category === selectedCategory
-  );
+  const selectedDate =
+    activeTab === "custom" && customDate
+      ? parse(customDate, "yyyy-MM-dd", new Date())
+      : undefined;
 
-  const handleTabChange = (tab: DateTab, date?: string) => {
-    setSelectedCategory("all");
-    navigate({
-      search: {
-        tab: tab === "today" ? undefined : tab,
-        date: tab === "custom" ? date : undefined,
-      },
-    });
-  };
+  const customLabel = selectedDate ? format(selectedDate, "MMM d") : "Date";
+
+  const tabs: {
+    key: DateTab;
+    label: string;
+    icon: React.ReactNode;
+    search: SearchParams;
+  }[] = [
+    { key: "today", label: "Today", icon: <Sun className="h-4 w-4" />, search: {} },
+    { key: "tomorrow", label: "Tomorrow", icon: <Sunrise className="h-4 w-4" />, search: { tab: "tomorrow" } },
+    { key: "week", label: "Week", icon: <CalendarDays className="h-4 w-4" />, search: { tab: "week" } },
+  ];
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Auroville Events</h1>
-        <p className="text-muted-foreground">
+    <main className="container mx-auto px-4 pt-6 pb-28">
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold mb-1">Auroville Events</h1>
+        <p className="text-muted-foreground text-sm hidden sm:block">
           Discover workshops, events, and classes happening in Auroville
         </p>
       </div>
 
-      {/* Date tabs */}
-      <div className="flex gap-2 mb-4 flex-wrap items-center">
-        <Button
-          variant={activeTab === "today" ? "default" : "outline"}
-          size="sm"
-          onClick={() => handleTabChange("today")}
-        >
-          Today
-        </Button>
-        <Button
-          variant={activeTab === "tomorrow" ? "default" : "outline"}
-          size="sm"
-          onClick={() => handleTabChange("tomorrow")}
-        >
-          Tomorrow
-        </Button>
-        <Button
-          variant={activeTab === "week" ? "default" : "outline"}
-          size="sm"
-          onClick={() => handleTabChange("week")}
-        >
-          This Week
-        </Button>
-        <div className="relative">
-          <input
-            type="date"
-            className="absolute inset-0 opacity-0 cursor-pointer w-full"
-            value={activeTab === "custom" ? customDate : ""}
-            onChange={(e) => {
-              if (e.target.value) handleTabChange("custom", e.target.value);
-            }}
-          />
-          <Button
-            variant={activeTab === "custom" ? "default" : "outline"}
-            size="sm"
-          >
-            <CalendarIcon className="mr-1 h-4 w-4" />
-            {activeTab === "custom" && customDate
-              ? format(parse(customDate, "yyyy-MM-dd", new Date()), "MMM d")
-              : "Pick Date"}
-          </Button>
-        </div>
-      </div>
-
-      {/* Category filter */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {categories.map((category) => (
-          <Button
-            key={category}
-            variant={selectedCategory === category ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(category)}
-            className="capitalize"
-          >
-            {category === "all" ? "All Events" : category}
-          </Button>
-        ))}
-      </div>
-
-      {filteredEvents.length === 0 && (
+      {events.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No events found</p>
         </div>
       )}
 
-      {filteredEvents.length > 0 && (
+      {events.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event: Event) => (
+          {events.map((event: Event) => (
             <EventCard key={`${event.date}-${event.title}`} event={event} />
           ))}
         </div>
       )}
+
+      {/* Floating bottom date bar */}
+      <nav className="fixed bottom-2 md:bottom-6 left-1/2 -translate-x-1/2 z-50 pb-[env(safe-area-inset-bottom)]">
+        <Tabs.Root
+          value={activeTab}
+          className="rounded-full bg-background/70 dark:bg-background/60 backdrop-blur-xl border border-border/50 shadow-lg"
+        >
+          <Tabs.List className="relative z-0 flex items-center gap-1 px-2 py-2">
+            {tabs.map(({ key, label, icon, search }) => (
+              <Tabs.Tab
+                key={key}
+                value={key}
+                className={tabClass}
+                render={<Link to="/" search={search} />}
+              >
+                {icon}
+                <span className={activeTab === key ? "" : "hidden sm:inline"}>
+                  {label}
+                </span>
+              </Tabs.Tab>
+            ))}
+
+            {/* Date picker tab with popover */}
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen} modal>
+              <PopoverTrigger
+                render={
+                  <Tabs.Tab
+                    value="custom"
+                    className={tabClass}
+                  />
+                }
+              >
+                <CalendarIcon className="h-4 w-4" />
+                <span className={activeTab === "custom" ? "whitespace-nowrap" : "hidden sm:inline"}>
+                  {customLabel}
+                </span>
+              </PopoverTrigger>
+              <PopoverContent side="top" sideOffset={12} className="w-auto p-0">
+                <Calendar
+                  className="p-4 [--cell-size:--spacing(10)] text-base"
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      navigate({
+                        search: { tab: "custom", date: formatDateParam(date) },
+                      });
+                      setCalendarOpen(false);
+                    }
+                  }}
+                  defaultMonth={selectedDate || new Date()}
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Tabs.Indicator className="absolute top-1/2 left-0 z-0 h-[calc(100%-16px)] w-[var(--active-tab-width)] translate-x-[var(--active-tab-left)] -translate-y-1/2 rounded-full bg-primary shadow-sm transition-all duration-200 ease-in-out" />
+          </Tabs.List>
+        </Tabs.Root>
+      </nav>
     </main>
   );
 }

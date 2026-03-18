@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { fetchEventsByDate, findEventBySlug } from "@/lib/api";
 import { formatDateParam } from "@/lib/utils";
 
@@ -49,12 +50,6 @@ export const Route = createFileRoute("/events/$slug")({
   ),
   component: EventDetailPage,
 });
-
-const categoryColors = {
-  workshop: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  event: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  class: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-} as const;
 
 function formatTime(time: string | null): string | null {
   if (!time) return null;
@@ -99,16 +94,8 @@ function EventDetailPage() {
         />
       )}
 
-      <div className="flex items-start justify-between gap-4 mb-4">
+      <div className="mb-4">
         <h1 className="text-3xl font-bold">{event.title || "Untitled Event"}</h1>
-        {event.category && (
-          <Badge
-            className={categoryColors[event.category]}
-            variant="secondary"
-          >
-            {event.category}
-          </Badge>
-        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
