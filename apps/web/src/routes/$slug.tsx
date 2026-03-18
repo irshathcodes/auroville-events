@@ -20,7 +20,7 @@ interface SearchParams {
   date?: string;
 }
 
-export const Route = createFileRoute("/events/$slug")({
+export const Route = createFileRoute("/$slug")({
   validateSearch: (search: Record<string, unknown>): SearchParams => ({
     date: (search.date as string) || undefined,
   }),

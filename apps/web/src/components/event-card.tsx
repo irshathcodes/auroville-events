@@ -30,7 +30,7 @@ export function EventCard({ event }: EventCardProps) {
 
   return (
     <Link
-      to="/events/$slug"
+      to="/$slug"
       params={{ slug }}
       search={{ date: event.date || undefined }}
     >
@@ -54,12 +54,12 @@ export function EventCard({ event }: EventCardProps) {
         )}
 
         {/* Glassmorphic overlay */}
-        <div className="absolute inset-x-0 bottom-0 bg-black/40 backdrop-blur-md p-4 space-y-1.5">
-          <h3 className="font-semibold text-white text-lg line-clamp-2 leading-tight">
+        <div className="absolute inset-x-0 bottom-0 bg-white/80 backdrop-blur-md p-4 space-y-1.5">
+          <h3 className="font-semibold text-gray-900 text-lg line-clamp-2 leading-tight">
             {event.title || "Untitled Event"}
           </h3>
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/80">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-700">
             {eventDate && (
               <span className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
@@ -84,11 +84,11 @@ export function EventCard({ event }: EventCardProps) {
           {event.paymentType && (
             <div>
               {event.paymentType === "free" ? (
-                <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-green-500/80 text-white">
+                <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">
                   Free
                 </span>
               ) : (
-                <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-white/20 text-white">
+                <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-gray-300 text-gray-700">
                   {event.paymentAmount || (event.paymentType === "paid" ? "Paid" : "Contribution")}
                 </span>
               )}

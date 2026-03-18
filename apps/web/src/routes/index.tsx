@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState, useMemo } from "react";
 import { format, addDays, parse } from "date-fns";
 import { CalendarIcon, Sun, Sunrise, CalendarDays, Search, X } from "lucide-react";
+import { flushSync } from 'react-dom';
 
 import { EventCard } from "@/components/event-card";
 import { Calendar } from "@/components/ui/calendar";
@@ -13,8 +14,9 @@ import {
 } from "@/components/ui/popover";
 import { fetchEventsByDate } from "@/lib/api";
 import type { Event } from "@/lib/types";
-import { formatDateParam } from "@/lib/utils";
+import { cn, formatDateParam } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type DateTab = "today" | "tomorrow" | "week" | "custom";
 
@@ -73,10 +75,12 @@ function HomePage() {
   const { events, tab: activeTab } = Route.useLoaderData();
   const { date: customDate } = Route.useSearch();
   const navigate = useNavigate({ from: "/" });
+  const isMobile = useIsMobile();
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
 
   const filteredEvents = useMemo(
     () => searchEvents(events, searchQuery),
@@ -112,20 +116,33 @@ function HomePage() {
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    flushSync(() => {
+                      setSearchQuery('');
+                      setSearchOpen(false);
+                    });
+                    searchButtonRef.current?.focus();
+                  }
+                }}
                 placeholder="Search events..."
                 autoFocus
                 className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
               />
-              <button
+              <Button
                 onClick={() => {
                   setSearchOpen(false);
                   setSearchQuery("");
                 }}
-                className="shrink-0 rounded-full p-1 text-muted-foreground hover:text-foreground"
+                className="shrink-0 rounded-full"
+                variant='ghost'
+                size='icon-lg'
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
           ) : (
             <>
@@ -140,12 +157,14 @@ function HomePage() {
                   setSearchOpen(true);
                   requestAnimationFrame(() => searchInputRef.current?.focus());
                 }}
-                className="shrink-0 rounded-full p-2.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors self-start size-10!"
+                ref={searchButtonRef}
+                className={cn("shrink-0 rounded-full p-2.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors self-start gap-1.5", isMobile ? "size-10" : "w-fit! h-10 px-5! pl-4!")}
                 aria-label="Search events"
                 variant='outline'
                 size='icon-lg'
               >
-                <Search className="size-5" />
+                <Search className={isMobile ? "size-5" : "size-4"} />
+                <span className={isMobile ? 'hidden' : ''}>Search</span>
               </Button>
             </>
           )}
