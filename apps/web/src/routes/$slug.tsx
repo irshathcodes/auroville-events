@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useCanGoBack, useNavigate, useRouter } from "@tanstack/react-router";
 import { format, parse } from "date-fns";
 import {
   Calendar,
@@ -12,6 +12,7 @@ import {
 import { GeneratedPattern } from "@/components/generated-pattern";
 import { fetchEventsByDate, findEventBySlug } from "@/lib/api";
 import { formatDateParam, getAurovilleToday } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface SearchParams {
   date?: string;
@@ -64,17 +65,28 @@ function EventDetailPage() {
     : null;
   const startFormatted = formatTime(event.startTime);
   const endFormatted = formatTime(event.endTime);
+  const canGoBack = useCanGoBack();
+  const router = useRouter();
+  const navigate = useNavigate();
+
+  const handleGoBack = () => {
+    if (canGoBack) {
+      router.history.go(-1);
+    } else {
+      navigate({ to: '/' });
+    }
+  }
 
   return (
-    <main className="min-h-screen pb-12">
+    <main className="min-h-screen pb-12 overflow-x-hidden">
       {/* Floating back button */}
-      <Link
-        to="/"
-        className="fixed top-4 left-4 z-50 flex items-center justify-center size-11 rounded-full bg-white/70 backdrop-blur-lg border border-gray-200/50 shadow-lg hover:bg-white/90 transition-colors"
+      <Button
+        className="fixed top-4 left-4 z-50 flex items-center justify-center size-11 rounded-full bg-white/70 backdrop-blur-lg border border-gray-200/50 shadow-lg hover:bg-white/90 transition-transform scale-100 active:scale-90 duration-300"
         aria-label="Back to events"
+        onClick={handleGoBack}
       >
         <ArrowLeft className="h-5 w-5 text-gray-800" />
-      </Link>
+      </Button>
 
       {/* Hero media */}
       {event.imageUrl ? (
@@ -82,7 +94,7 @@ function EventDetailPage() {
           <img
             src={event.imageUrl}
             alt={event.title || "Event"}
-            className="w-full max-w-md rounded-xl shadow-md"
+            className="w-full max-w-md max-h-[70vh] object-contain rounded-xl shadow-md"
           />
         </div>
       ) : event.videoUrl ? (
@@ -193,7 +205,7 @@ function EventDetailPage() {
               <hr className="border-gray-100 mb-5" />
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-3">About this Event</h2>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-wrap text-base">
+                <p className="text-gray-600 leading-relaxed whitespace-pre-wrap text-base break-words overflow-wrap-anywhere">
                   {event.description}
                 </p>
               </div>
