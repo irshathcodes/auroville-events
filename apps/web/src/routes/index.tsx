@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/popover";
 import { fetchEventsByDate } from "@/lib/api";
 import type { Event } from "@/lib/types";
-import { cn, formatDateParam } from "@/lib/utils";
+import { cn, formatDateParam, getAurovilleToday } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/")({
   }),
   loaderDeps: ({ search }) => ({ date: search.date, tab: search.tab }),
   loader: async ({ deps }) => {
-    const today = new Date();
+    const today = getAurovilleToday();
     const tab = deps.tab || "today";
 
     if (tab === "week") {

@@ -11,7 +11,7 @@ import {
 
 import { GeneratedPattern } from "@/components/generated-pattern";
 import { fetchEventsByDate, findEventBySlug } from "@/lib/api";
-import { formatDateParam } from "@/lib/utils";
+import { formatDateParam, getAurovilleToday } from "@/lib/utils";
 
 interface SearchParams {
   date?: string;
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/$slug")({
   }),
   loaderDeps: ({ search }) => ({ date: search.date }),
   loader: async ({ params, deps }) => {
-    const dateStr = deps.date || formatDateParam(new Date());
+    const dateStr = deps.date || formatDateParam(getAurovilleToday());
     const events = await fetchEventsByDate(dateStr);
     const event = findEventBySlug(events, params.slug);
     if (!event) throw new Error("Event not found");
