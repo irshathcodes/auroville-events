@@ -7,7 +7,9 @@ import {
   Phone,
   ExternalLink,
   ArrowLeft,
+  Share2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { GeneratedPattern } from "@/components/generated-pattern";
 import { fetchEventsByDate, findEventBySlug } from "@/lib/api";
@@ -58,6 +60,33 @@ function formatTime(time: string | null): string | null {
   }
 }
 
+function ShareButton({ title }: { title: string }) {
+  const url = typeof window !== "undefined" ? window.location.href : "";
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url });
+      } catch {
+        // user cancelled
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied!");
+    }
+  };
+
+  return (
+    <button
+      className="fixed top-4 right-6 z-50 flex items-center justify-center size-11 rounded-full bg-white/70 backdrop-blur-lg border border-gray-200/50 shadow-lg hover:bg-white/90 transition-transform scale-100 active:scale-90 duration-300 cursor-pointer"
+      aria-label="Share event"
+      onClick={handleShare}
+    >
+      <Share2 className="h-5 w-5 text-gray-800" />
+    </button>
+  );
+}
+
 function EventDetailPage() {
   const { event } = Route.useLoaderData();
   const eventDate = event.date
@@ -79,7 +108,7 @@ function EventDetailPage() {
 
   return (
     <main className="min-h-screen pb-12 overflow-x-hidden">
-      {/* Floating back button */}
+      {/* Floating back & share buttons */}
       <Button
         className="fixed top-4 left-4 z-50 flex items-center justify-center size-11 rounded-full bg-white/70 backdrop-blur-lg border border-gray-200/50 shadow-lg hover:bg-white/90 transition-transform scale-100 active:scale-90 duration-300"
         aria-label="Back to events"
@@ -87,6 +116,8 @@ function EventDetailPage() {
       >
         <ArrowLeft className="h-5 w-5 text-gray-800" />
       </Button>
+
+      <ShareButton title={event.title || "Auroville Event"} />
 
       {/* Hero media */}
       {event.imageUrl ? (
