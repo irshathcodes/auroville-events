@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useCanGoBack, useNavigate, useRouter } from "@tanstack/react-router";
+import type { Event } from "@/lib/types";
 import { format, parse } from "date-fns";
 import {
   Calendar,
@@ -20,6 +21,41 @@ interface SearchParams {
   date?: string;
 }
 
+const SITE_URL = "https://events.auroville.org";
+const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
+
+function buildEventMeta(event: Event, slug: string, dateStr: string) {
+  const title = event.title
+    ? `${event.title} — Auroville Events`
+    : "Auroville Events";
+  const description = event.description
+    ? event.description.slice(0, 160)
+    : [event.placeName, event.location].filter(Boolean).join(", ") ||
+      "An event in Auroville";
+  const url = `${SITE_URL}/${slug}?date=${dateStr}`;
+  const image = event.imageUrl || DEFAULT_OG_IMAGE;
+
+  return {
+    meta: [
+      { title },
+      { name: "description", content: description },
+      // Open Graph
+      { property: "og:title", content: event.title || "Auroville Event" },
+      { property: "og:description", content: description },
+      { property: "og:type", content: "article" },
+      { property: "og:url", content: url },
+      { property: "og:image", content: image },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      // Twitter
+      { name: "twitter:title", content: event.title || "Auroville Event" },
+      { name: "twitter:description", content: description },
+      { name: "twitter:image", content: image },
+    ],
+    links: [{ rel: "canonical", href: url }],
+  };
+}
+
 export const Route = createFileRoute("/$slug")({
   validateSearch: (search: Record<string, unknown>): SearchParams => ({
     date: (search.date as string) || undefined,
@@ -30,7 +66,15 @@ export const Route = createFileRoute("/$slug")({
     const events = await fetchEventsByDate(dateStr);
     const event = findEventBySlug(events, params.slug);
     if (!event) throw new Error("Event not found");
-    return { event };
+    return { event, dateStr };
+  },
+  head: ({ loaderData }) => {
+    if (!loaderData) return {};
+    const { event, dateStr } = loaderData;
+    const slug = event.title
+      ? event.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+      : "event";
+    return buildEventMeta(event, slug, dateStr);
   },
   errorComponent: () => (
     <main className="min-h-screen flex flex-col items-center justify-center px-4">

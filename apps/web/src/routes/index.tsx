@@ -25,10 +25,75 @@ interface SearchParams {
   tab?: DateTab;
 }
 
+const SITE_URL = "https://events.auroville.org";
+const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
+
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): SearchParams => ({
     date: (search.date as string) || undefined,
     tab: (search.tab as DateTab) || undefined,
+  }),
+  head: () => ({
+    meta: [
+      {
+        title: "Auroville Events — Workshops, Classes & Events in Auroville",
+      },
+      {
+        name: "description",
+        content:
+          "Discover and explore workshops, events, and classes happening in Auroville, India. Find today's events, upcoming activities, and community gatherings.",
+      },
+      // Open Graph
+      {
+        property: "og:title",
+        content: "Auroville Events — Workshops, Classes & Events",
+      },
+      {
+        property: "og:description",
+        content:
+          "Discover and explore workshops, events, and classes happening in Auroville, India.",
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:url",
+        content: SITE_URL,
+      },
+      {
+        property: "og:image",
+        content: DEFAULT_OG_IMAGE,
+      },
+      {
+        property: "og:image:width",
+        content: "1200",
+      },
+      {
+        property: "og:image:height",
+        content: "630",
+      },
+      // Twitter
+      {
+        name: "twitter:title",
+        content: "Auroville Events — Workshops, Classes & Events",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Discover and explore workshops, events, and classes happening in Auroville, India.",
+      },
+      {
+        name: "twitter:image",
+        content: DEFAULT_OG_IMAGE,
+      },
+    ],
+    links: [
+      {
+        rel: "canonical",
+        href: SITE_URL,
+      },
+    ],
   }),
   loaderDeps: ({ search }) => ({ date: search.date, tab: search.tab }),
   loader: async ({ deps }) => {

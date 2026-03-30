@@ -8,6 +8,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 export interface RouterAppContext { }
 
+const SITE_URL = "https://events.auroville.org";
+
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
     meta: [
@@ -25,11 +27,38 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         name: "description",
         content: "Discover workshops, events, and classes happening in Auroville, India",
       },
+      // OG base tags
+      {
+        property: "og:site_name",
+        content: "Auroville Events",
+      },
+      {
+        property: "og:locale",
+        content: "en_US",
+      },
+      // Twitter card defaults
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+      // Theme color
+      {
+        name: "theme-color",
+        content: "#ffffff",
+      },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "icon",
+        href: "/favicon.ico",
+      },
+      {
+        rel: "canonical",
+        href: SITE_URL,
       },
     ],
   }),
