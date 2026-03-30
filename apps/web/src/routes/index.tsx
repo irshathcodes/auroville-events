@@ -25,7 +25,7 @@ interface SearchParams {
   tab?: DateTab;
 }
 
-const SITE_URL = "https://events.auroville.org";
+const SITE_URL = "https://auroville-events.irshathv2.workers.dev";
 const DEFAULT_OG_IMAGE = `${SITE_URL}/auroville-events-logo.jpg`;
 
 export const Route = createFileRoute("/")({

@@ -8,7 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 export interface RouterAppContext { }
 
-const SITE_URL = "https://events.auroville.org";
+const SITE_URL = "https://auroville-events.irshathv2.workers.dev";
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
