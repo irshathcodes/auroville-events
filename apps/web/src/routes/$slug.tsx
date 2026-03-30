@@ -21,8 +21,8 @@ interface SearchParams {
   date?: string;
 }
 
-const SITE_URL = "https://events.auroville.org";
-const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
+const SITE_URL = import.meta.env.DEV ? import.meta.env.BASE_URL : "https://auroville-events.irshathv2.workers.dev";
+const DEFAULT_OG_IMAGE = `${SITE_URL}/auroville-events-logo.jpg`;
 
 function buildEventMeta(event: Event, slug: string, dateStr: string) {
   const title = event.title
@@ -31,7 +31,7 @@ function buildEventMeta(event: Event, slug: string, dateStr: string) {
   const description = event.description
     ? event.description.slice(0, 160)
     : [event.placeName, event.location].filter(Boolean).join(", ") ||
-      "An event in Auroville";
+    "An event in Auroville";
   const url = `${SITE_URL}/${slug}?date=${dateStr}`;
   const image = event.imageUrl || DEFAULT_OG_IMAGE;
 

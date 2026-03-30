@@ -26,7 +26,7 @@ interface SearchParams {
 }
 
 const SITE_URL = "https://events.auroville.org";
-const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
+const DEFAULT_OG_IMAGE = `${SITE_URL}/auroville-events-logo.jpg`;
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): SearchParams => ({
