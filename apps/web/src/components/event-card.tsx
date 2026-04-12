@@ -34,6 +34,7 @@ export function EventCard({ event }: EventCardProps) {
       to="/$slug"
       params={{ slug }}
       search={{ date: event.date || undefined }}
+      className="block transition-transform duration-200 ease-out active:scale-[0.97]"
     >
       <div className="group relative h-[28rem] overflow-hidden rounded-xl cursor-pointer shadow-md">
         {/* Media */}
@@ -41,6 +42,7 @@ export function EventCard({ event }: EventCardProps) {
           <img
             src={event.imageUrl}
             alt={event.title || "Event"}
+            loading="lazy"
             className="absolute inset-0 w-full h-full object-cover object-top"
           />
         ) : event.videoUrl ? (

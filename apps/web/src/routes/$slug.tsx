@@ -187,7 +187,7 @@ function EventDetailPage() {
       )}
 
       {/* Content */}
-      <div className="max-w-2xl mx-auto px-4 -mt-6 relative z-10">
+      <div className="max-w-2xl mx-auto px-4 -mt-6 relative z-10 animate-mount-rise">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 md:p-8">
           {/* Title + payment badge */}
           <div className="mb-5">
