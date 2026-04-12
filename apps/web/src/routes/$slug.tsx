@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useCanGoBack, useNavigate, useRouter } from "@tanstack/react-router";
 import type { Event } from "@/lib/types";
-import { format, parse } from "date-fns";
+import { addDays, format, parse, startOfDay } from "date-fns";
 import {
   Calendar,
   Clock,
@@ -62,7 +62,17 @@ export const Route = createFileRoute("/$slug")({
   }),
   loaderDeps: ({ search }) => ({ date: search.date }),
   loader: async ({ params, deps }) => {
-    const dateStr = deps.date || formatDateParam(getAurovilleToday());
+    const today = getAurovilleToday();
+    const dateStr = deps.date || formatDateParam(today);
+
+    if (deps.date) {
+      const requested = parse(deps.date, "yyyy-MM-dd", new Date());
+      const cutoff = addDays(startOfDay(today), -14);
+      if (requested < cutoff) {
+        throw new Error("EVENT_EXPIRED");
+      }
+    }
+
     const events = await fetchEventsByDate(dateStr);
     const event = findEventBySlug(events, params.slug);
     if (!event) throw new Error("Event not found");
@@ -76,21 +86,28 @@ export const Route = createFileRoute("/$slug")({
       : "event";
     return buildEventMeta(event, slug, dateStr);
   },
-  errorComponent: () => (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4">
-      <h1 className="text-2xl font-bold mb-2">Event Not Found</h1>
-      <p className="text-gray-500 mb-6">
-        The event you're looking for doesn't exist or has been removed.
-      </p>
-      <Link
-        to="/"
-        className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Events
-      </Link>
-    </main>
-  ),
+  errorComponent: ({ error }) => {
+    const expired = error instanceof Error && error.message === "EVENT_EXPIRED";
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
+        <h1 className="text-2xl font-bold mb-2">
+          {expired ? "Event No Longer Available" : "Event Not Found"}
+        </h1>
+        <p className="text-gray-500 mb-6 max-w-md">
+          {expired
+            ? "Events older than 2 weeks are deleted to keep this free site running on a tight budget."
+            : "The event you're looking for doesn't exist or has been removed."}
+        </p>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Events
+        </Link>
+      </main>
+    );
+  },
   component: EventDetailPage,
 });
 

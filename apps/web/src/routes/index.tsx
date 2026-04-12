@@ -1,7 +1,7 @@
 import { Tabs } from "@base-ui/react/tabs";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState, useMemo } from "react";
-import { format, addDays, parse } from "date-fns";
+import { format, addDays, parse, startOfDay } from "date-fns";
 import { CalendarIcon, Sun, Sunrise, CalendarDays, Search, X } from "lucide-react";
 import { flushSync } from 'react-dom';
 
@@ -106,7 +106,7 @@ export const Route = createFileRoute("/")({
       );
       const results = await Promise.all(dates.map(fetchEventsByDate));
       const events = results.flat();
-      return { events, tab };
+      return { events, tab, expired: false };
     }
 
     let dateStr: string;
@@ -118,8 +118,16 @@ export const Route = createFileRoute("/")({
       dateStr = formatDateParam(today);
     }
 
+    if (tab === "custom" && deps.date) {
+      const requested = parse(deps.date, "yyyy-MM-dd", new Date());
+      const cutoff = addDays(startOfDay(today), -14);
+      if (requested < cutoff) {
+        return { events: [], tab, expired: true };
+      }
+    }
+
     const events = await fetchEventsByDate(dateStr);
-    return { events, tab };
+    return { events, tab, expired: false };
   },
   component: HomePage,
 });
@@ -136,8 +144,13 @@ function searchEvents(events: Event[], query: string): Event[] {
   );
 }
 
+function getPickerMinDate() {
+  return addDays(startOfDay(getAurovilleToday()), -14);
+}
+
 function HomePage() {
-  const { events, tab: activeTab } = Route.useLoaderData();
+  const { events, tab: activeTab, expired } = Route.useLoaderData();
+  const pickerMinDate = useMemo(getPickerMinDate, []);
   const { date: customDate } = Route.useSearch();
   const navigate = useNavigate({ from: "/" });
   const isMobile = useIsMobile();
@@ -236,7 +249,15 @@ function HomePage() {
         </div>
       </div>
 
-      {filteredEvents.length === 0 && (
+      {expired && (
+        <div className="text-center py-12 max-w-md mx-auto">
+          <p className="text-muted-foreground">
+            Events older than 2 weeks are deleted to keep this free site running on a tight budget. Please pick a more recent date.
+          </p>
+        </div>
+      )}
+
+      {!expired && filteredEvents.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
             {searchQuery ? "No events matching your search" : "No events found"}
@@ -312,6 +333,7 @@ function HomePage() {
                     }
                   }}
                   defaultMonth={selectedDate || new Date()}
+                  disabled={{ before: pickerMinDate }}
                 />
               </PopoverContent>
             </Popover>
